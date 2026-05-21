@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Esquina Venus · Libros · Audios · Herramientas</title>
+    <meta name="description" content="Librería cubana: libros usados, audioresúmenes y herramientas para emprendedores.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B5A2B">
+    <style>
+        /* ===== ESTILOS ADICIONALES PARA TARJETAS MEJORADAS ===== */
+        
+        /* Estilo 1: Clásico librería (para libros físicos) */
+        .producto-card.libro {
+            background: #FFFCF8;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .producto-card.libro:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+        
+        .producto-card.libro .card-imagen {
+            background: #e8dcca;
+            position: relative;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Simulación de marcas de uso (detalle vintage) */
+        .producto-card.libro .card-imagen::after {
+            content: "";
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(0,0,0,0.05) 2px, transparent 2px);
+            background-size: 8px 8px;
+            pointer-events: none;
+        }
+        
+        .producto-card.libro .card-contenido {
+            padding: 1rem;
+            border-top: 1px solid #f0e6d8;
+        }
+        
+        .producto-card.libro .card-titulo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #3d2b1a;
+        }
+        
+        .producto-card.libro .card-autor {
+            font-style: italic;
+            font-size: 0.8rem;
+            color: #8B7355;
+        }
+        
+        .producto-card.libro .card-detalles {
+            font-size: 0.7rem;
+            color: #a0866b;
+            margin: 0.5rem 0;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .producto-card.libro .card-precio {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #c0392b;
+            font-family: Georgia, serif;
+        }
+        
+        /* Estilo 2: Moderno minimalista (para productos digitales) */
+        .producto-card.digital {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .producto-card.digital:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border-color: #e0e0e0;
+        }
+        
+        .producto-card.digital .card-imagen {
+            background: #f8f9fa;
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .producto-card.digital .card-contenido {
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .producto-card.digital .card-titulo {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .producto-card.digital .card-precio {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 0.5rem 0;
+        }
+        
+        .producto-card.digital .btn-agregar {
+            background: none;
+            border: 1.5px solid #27ae60;
+            color: #27ae60;
+            border-radius: 40px;
+            padding: 0.4rem;
+            font-weight: normal;
+            transition: all 0.2s;
+        }
+        
+        .producto-card.digital .btn-agregar:hover {
+            background: #27ae60;
+            color: white;
+        }
+        
+        /* Badges mejorados */
+        .card-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .badge-libro {
+            background: #8B5A2B;
+            color: white;
+        }
+        
+        .badge-audio {
+            background: #3498db;
+            color: white;
+        }
+        
+        .badge-herramienta {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        /* Botón de favorito (corazón) */
+        .btn-favorito {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+            z-index: 2;
+        }
+        
+        .btn-favorito:active {
+            transform: scale(0.9);
+        }
+        
+        /* Selector de vista (grid vs lista) */
+        .selector-vista {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .vista-btn {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .vista-btn.activo {
+            background: #8B5A2B;
+            color: white;
+            border-color: #8B5A2B;
+        }
+        
+        /* Modo lista (horizontal) */
+        .grid-productos.lista {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .grid-productos.lista .producto-card {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 0.8rem;
+        }
+        
+        .grid-productos.lista .card-imagen {
+            width: 80px;
+            min-height: 80px;
+            margin-right: 1rem;
+            border-radius: 12px;
+        }
+        
+        .grid-productos.lista .card-contenido {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 0;
+        }
+        
+        .grid-productos.lista .card-titulo {
+            width: 30%;
+        }
+        
+        .grid-productos.lista .card-precio {
+            width: auto;
+        }
+        
+        /* Animación de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .producto-card {
+            animation: fadeInUp 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <header class="header-principal">
+        <div class="header-contenido">
+            <a href="index.html" class="logo">🐚 Esquina Venus</a>
+            <div style="display: flex; gap: 0.8rem; align-items: center;">
+                <a href="carrito.html" class="ver-carrito">🛒 Carrito <span id="carrito-contador">0</span></a>
+            </div>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>Libros · Audios · Herramientas</h1>
+        <p>Para crecer, emprender y leer sin límites</p>
+        <p><small>🐚 Un homenaje a La Concha de Venus (Cárdenas, 1882)</small></p>
+    </div>
+
+    <div class="categorias">
+        <div class="tabs" id="tabs">
+            <button class="tab-btn activo" data-categoria="todos">📚 Todos</button>
+            <button class="tab-btn" data-categoria="libro_fisico">📖 Libros físicos</button>
+            <button class="tab-btn" data-categoria="audio_resumen">🎧 Audioresúmenes</button>
+            <button class="tab-btn" data-categoria="herramienta_pwa">🛠️ Herramientas PWA</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <input type="text" id="buscador" class="buscador" placeholder="🔍 Buscar producto..." style="flex:1; min-width: 150px;">
+            <div class="selector-vista">
+                <button class="vista-btn activo" data-vista="grid">📱 Grid</button>
+                <button class="vista-btn" data-vista="lista">📋 Lista</button>
+            </div>
+        </div>
+
+        <div id="grid-productos" class="grid-productos">
+            <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🐚 Esquina Venus · Cárdenas, Cuba</p>
+        <p>Efectivo · Transferencia · Envíos a toda Cuba</p>
+        <p><a href="admin.html">🔒 Panel del dueño</a></p>
+    </footer>
+
+    <div id="mensaje-flotante" class="mensaje-flotante"></div>
+
+    <script src="js/carrito.js"></script>
+    <script>
+        let todosProductos = [];
+        let categoriaActual = 'todos';
+        let vistaActual = 'grid';
+        
+        function cargarProductos() {
+            fetch('data/productos.json')
+                .then(response => response.json())
+                .then(data => {
+                    if(data && data.productos) {
+                        todosProductos = data.productos;
+                        localStorage.setItem('esquina_productos_backup', JSON.stringify(todosProductos));
+                        filtrarYMostrar();
+                    } else {
+                        usarBackupLocal();
+                    }
+                })
+                .catch(() => usarBackupLocal());
+        }
+        
+        function usarBackupLocal() {
+            const backup = localStorage.getItem('esquina_productos_backup');
+            if(backup) {
+                todosProductos = JSON.parse(backup);
+            } else {
+                todosProductos = [];
+            }
+            filtrarYMostrar();
+        }
+        
+        function filtrarYMostrar() {
+            let filtrados = todosProductos;
+            if(categoriaActual !== 'todos') {
+                filtrados = filtrados.filter(p => p.categoria === categoriaActual);
+            }
+            const busqueda = document.getElementById('buscador')?.value.toLowerCase() || '';
+            if(busqueda) {
+                filtrados = filtrados.filter(p => p.nombre.toLowerCase().includes(busqueda) || (p.descripcion && p.descripcion.toLowerCase().includes(busqueda)));
+            }
+            mostrarProductos(filtrados);
+        }
+        
+        function mostrarProductos(productos) {
+            const grid = document.getElementById('grid-productos');
+            if(productos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; padding:2rem">📭 No hay productos en esta categoría.</p>';
+                return;
+            }
+            
+            grid.className = `grid-productos ${vistaActual}`;
+            
+            grid.innerHTML = productos.map(p => {
+                // Determinar estilo según categoría
+                const estiloCard = p.categoria === 'libro_fisico' ? 'libro' : 'digital';
+                let icono = '', badgeClass = '', badgeText = '', detalleAdicional = '';
+                
+                if(p.categoria === 'libro_fisico') {
+                    icono = '📖';
+                    badgeClass = 'badge-libro';
+                    badgeText = '📖 Libro usado';
+                    detalleAdicional = `<div class="card-detalles">
+                        <span>📄 ${p.estado === 'como_nuevo' ? 'Como nuevo' : p.estado === 'bueno' ? 'Buen estado' : 'Aceptable'}</span>
+                        <span>⭐ ${p.destacado ? 'Recomendado' : ''}</span>
+                    </div>`;
+                } else if(p.categoria === 'audio_resumen') {
+                    icono = '🎧';
+                    badgeClass = 'badge-audio';
+                    badgeText = '🎧 Audioresumen';
+                    detalleAdicional = `<div class="card-detalles">
+                        <span>⏱️ 25-30 min</span>
+                        <span>📥 Descarga inmediata</span>
+                    </div>`;
+                } else {
+                    icono = '🛠️';
+                    badgeClass = 'badge-herramienta';
+                    badgeText = '🛠️ Herramienta PWA';
+                    detalleAdicional = `<div class="card-detalles">
+                        <span>📱 Funciona offline</span>
+                        <span>🔧 Instalable</span>
+                    </div>`;
+                }
+                
+                return `
+                    <div class="producto-card ${estiloCard}" data-id="${p.id}">
+                        <div class="card-imagen">
+                            <span style="font-size:3rem">${icono}</span>
+                        </div>
+                        <div class="card-badge ${badgeClass}">${badgeText}</div>
+                        <button class="btn-favorito" onclick="favoritoAlert('${p.nombre.replace(/'/g, "\\'")}')">🤍</button>
+                        <div class="card-contenido">
+                            <h3 class="card-titulo">${escapeHtml(p.nombre)}</h3>
+                            <div class="card-autor">${p.descripcion ? escapeHtml(p.descripcion.substring(0, 60)) : ''}${p.descripcion?.length > 60 ? '...' : ''}</div>
+                            ${detalleAdicional}
+                            <div class="card-precio">$${p.precio.toFixed(2)}</div>
+                            <button class="btn-agregar" data-id="${p.id}" data-nombre="${escapeHtml(p.nombre)}" data-precio="${p.precio}" data-tipo="${p.tipo}">
+                                ${p.tipo === 'digital' ? '📥 Adquirir' : '🛒 Agregar al carrito'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.querySelectorAll('.btn-agregar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    agregarAlCarrito({
+                        id: btn.dataset.id,
+                        nombre: btn.dataset.nombre,
+                        precio: parseFloat(btn.dataset.precio),
+                        tipo: btn.dataset.tipo
+                    });
+                    mostrarMensaje('✓ Agregado al carrito');
+                    actualizarContadorCarrito();
+                    
+                    // Animación de feedback
+                    btn.style.transform = 'scale(0.95)';
+                    setTimeout(() => { btn.style.transform = 'scale(1)'; }, 150);
+                });
+            });
+        }
+        
+        function favoritoAlert(nombre) {
+            mostrarMensaje(`❤️ "${nombre}" agregado a favoritos (localmente)`);
+            // Aquí podrías guardar favoritos en localStorage
+        }
+        
+        function escapeHtml(texto) {
+            if(!texto) return '';
+            const div = document.createElement('div');
+            div.textContent = texto;
+            return div.innerHTML;
+        }
+        
+        // Eventos de UI
+        document.getElementById('buscador').addEventListener('input', filtrarYMostrar);
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                categoriaActual = btn.dataset.categoria;
+                filtrarYMostrar();
+            });
+        });
+        
+        document.querySelectorAll('.vista-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.vista-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                vistaActual = btn.dataset.vista;
+                filtrarYMostrar();
+            });
+        });
+        
+        cargarProductos();
+        actualizarContadorCarrito();
+        
+        if('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>

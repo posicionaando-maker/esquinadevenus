@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin · Esquina Venus</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-header { background: #8B5A2B; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .admin-main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .formulario { background: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; }
+        .formulario input, .formulario textarea, .formulario select { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn { background: #8B5A2B; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
+        .btn-eliminar { background: #e74c3c; margin-left: 0.5rem; }
+        table { width: 100%; background: white; border-radius: 16px; overflow: hidden; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+        .login { max-width: 400px; margin: 100px auto; background: white; padding: 2rem; border-radius: 16px; text-align: center; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "esquinavenus";
+    
+    function checkAuth() {
+        return localStorage.getItem('admin_auth') === 'true';
+    }
+    
+    function login(usuario, password) {
+        if(usuario === ADMIN_USER && password === ADMIN_PASS) {
+            localStorage.setItem('admin_auth', 'true');
+            renderAdmin();
+            return true;
+        }
+        return false;
+    }
+    
+    function logout() {
+        localStorage.removeItem('admin_auth');
+        renderLogin();
+    }
+    
+    function getProductos() {
+        const stored = localStorage.getItem('esquina_productos');
+        return stored ? JSON.parse(stored) : [];
+    }
+    
+    function saveProductos(productos) {
+        localStorage.setItem('esquina_productos', JSON.stringify(productos));
+    }
+    
+    function agregarProducto(producto) {
+        const productos = getProductos();
+        const nuevoId = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+        productos.push({ ...producto, id: nuevoId });
+        saveProductos(productos);
+        renderAdmin();
+    }
+    
+    function eliminarProducto(id) {
+        let productos = getProductos();
+        productos = productos.filter(p => p.id != id);
+        saveProductos(productos);
+        renderAdmin();
+    }
+    
+    function renderLogin() {
+        document.getElementById('app').innerHTML = `
+            <div class="login">
+                <h2>🐚 Esquina Venus</h2>
+                <h3>Panel del dueño</h3>
+                <div id="login-error"></div>
+                <input type="text" id="login-user" placeholder="Usuario" autocomplete="off">
+                <input type="password" id="login-pass" placeholder="Contraseña">
+                <button class="btn" onclick="handleLogin()">Ingresar</button>
+                <p style="margin-top:1rem; font-size:0.8rem">Usuario: admin | Contraseña: esquinavenus</p>
+            </div>
+        `;
+    }
+    
+    window.handleLogin = function() {
+        const user = document.getElementById('login-user').value;
+        const pass = document.getElementById('login-pass').value;
+        if(!login(user, pass)) {
+            document.getElementById('login-error').innerHTML = '<p class="error">Usuario o contraseña incorrectos</p>';
+        }
+    };
+    
+    function renderAdmin() {
+        const productos = getProductos();
+        const categorias = [
+            { value: 'libro_fisico', label: '📖 Libro físico' },
+            { value: 'audio_resumen', label: '🎧 Audioresumen' },
+            { value: 'herramienta_pwa', label: '🛠️ Herramienta PWA' }
+        ];
+        
+        document.getElementById('app').innerHTML = `
+            <div class="admin-header">
+                <h1>🐚 Esquina Venus · Admin</h1>
+                <div><a href="index.html" style="color:white">Ver tienda</a> <button class="btn" onclick="logout()" style="margin-left:1rem">Cerrar</button></div>
+            </div>
+            <div class="admin-main">
+                <div class="formulario">
+                    <h2>➕ Agregar producto</h2>
+                    <input type="text" id="nombre" placeholder="Nombre" required>
+                    <select id="categoria">
+                        ${categorias.map(c => `<option value="${c.value}">${c.label}</option>`).join('')}
+                    </select>
+                    <textarea id="descripcion" placeholder="Descripción" rows="3"></textarea>
+                    <input type="number" step="0.01" id="precio" placeholder="Precio (CUP)" required>
+                    <select id="tipo">
+                        <option value="fisico">📦 Físico (libro)</option>
+                        <option value="digital">💻 Digital (audio o herramienta)</option>
+                    </select>
+                    <input type="text" id="link" placeholder="Link de descarga (si es digital)">
+                    <button class="btn" onclick="agregarProductoFromForm()">Guardar producto</button>
+                </div>
+                
+                <div style="overflow-x:auto">
+                    <h2>📦 Productos (${productos.length})</h2>
+                    <table>
+                        <thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            ${productos.map(p => `
+                                <tr>
+                                    <td>${p.id}</td>
+                                    <td>${escapeHtml(p.nombre)}</td>
+                                    <td>${p.categoria}</td>
+                                    <td>$${p.precio}</td>
+                                    <td><button class="btn btn-eliminar" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    window.agregarProductoFromForm = function() {
+        const nombre = document.getElementById('nombre').value.trim();
+        const categoria = document.getElementById('categoria').value;
+        const descripcion = document.getElementById('descripcion').value.trim();
+        const precio = parseFloat(document.getElementById('precio').value);
+        const tipo = document.getElementById('tipo').value;
+        const link = document.getElementById('link').value.trim();
+        
+        if(!nombre || isNaN(precio)) {
+            alert('Completa nombre y precio');
+            return;
+        }
+        
+        agregarProducto({ nombre, categoria, descripcion, precio, tipo, link_descarga: link || null });
+    };
+    
+    window.eliminarProducto = eliminarProducto;
+    window.logout = logout;
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    if(checkAuth()) {
+        renderAdmin();
+    } else {
+        renderLogin();
+    }
+</script>
+</body>
+</html>

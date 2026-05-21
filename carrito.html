@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito · Esquina Venus</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        .carrito-vacio { text-align: center; padding: 3rem; }
+        .tabla-carrito { overflow-x: auto; margin: 1rem; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+        .btn-cantidad { background: #ddd; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        .cantidad { margin: 0 0.5rem; }
+        .resumen { background: white; padding: 1.5rem; margin: 1rem; border-radius: 12px; }
+        .datos input, .datos select { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-whatsapp { background: #25D366; color: white; border: none; padding: 1rem; width: 100%; border-radius: 50px; cursor: pointer; font-weight: bold; margin: 1rem 0; }
+        .btn-vaciar { background: #e74c3c; color: white; border: none; padding: 0.75rem; width: 100%; border-radius: 8px; cursor: pointer; }
+        .total-grande { font-size: 1.3rem; font-weight: bold; color: #E67E22; }
+    </style>
+</head>
+<body>
+    <header class="header-principal">
+        <div class="header-contenido">
+            <a href="index.html" class="logo">← Seguir comprando</a>
+            <a href="carrito.html" class="ver-carrito">🛒 Carrito <span id="carrito-contador">0</span></a>
+        </div>
+    </header>
+
+    <main>
+        <div id="carrito-vacio" class="carrito-vacio" style="display:none">
+            <p>📭 Tu carrito está vacío</p>
+            <a href="index.html" class="btn-principal">Ver productos</a>
+        </div>
+
+        <div id="carrito-lleno">
+            <div class="tabla-carrito">
+                <table>
+                    <thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead>
+                    <tbody id="lista-carrito"></tbody>
+                </table>
+            </div>
+
+            <div class="resumen">
+                <h3>Resumen</h3>
+                <p>Subtotal: <span id="subtotal">$0.00</span></p>
+                <p>Envío: <span id="envio">$0.00</span></p>
+                <p class="total-grande">Total: <span id="total">$0.00</span></p>
+                
+                <div class="datos">
+                    <h4>Tus datos</h4>
+                    <input type="text" id="nombre" placeholder="Nombre completo" required>
+                    <input type="text" id="direccion" placeholder="Dirección de envío (si es libro físico)">
+                    <input type="text" id="telefono" placeholder="Teléfono (WhatsApp)" required>
+                    <select id="metodo-pago">
+                        <option value="efectivo">💰 Efectivo (contra entrega)</option>
+                        <option value="transferencia">🏦 Transferencia / Transfermóvil</option>
+                    </select>
+                </div>
+
+                <button id="enviar-whatsapp" class="btn-whatsapp">📱 Enviar pedido por WhatsApp</button>
+                <button id="vaciar-carrito" class="btn-vaciar">Vaciar carrito</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/carrito.js"></script>
+    <script>
+        const NUMERO_WHATSAPP = "5355555555"; // CAMBIA ESTE NÚMERO
+        
+        function mostrarCarrito() {
+            const carrito = obtenerCarrito();
+            const vacioDiv = document.getElementById('carrito-vacio');
+            const llenoDiv = document.getElementById('carrito-lleno');
+            const tbody = document.getElementById('lista-carrito');
+            
+            if(carrito.length === 0) {
+                vacioDiv.style.display = 'block';
+                llenoDiv.style.display = 'none';
+                return;
+            }
+            
+            vacioDiv.style.display = 'none';
+            llenoDiv.style.display = 'block';
+            
+            tbody.innerHTML = '';
+            let subtotal = 0;
+            
+            carrito.forEach((item, idx) => {
+                const subtotalItem = item.precio * (item.cantidad || 1);
+                subtotal += subtotalItem;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(item.nombre)}</td>
+                        <td>$${item.precio.toFixed(2)}</td>
+                        <td>
+                            <button class="btn-cantidad" onclick="cambiarCantidad(${idx}, ${(item.cantidad||1)-1})">-</button>
+                            <span class="cantidad">${item.cantidad || 1}</span>
+                            <button class="btn-cantidad" onclick="cambiarCantidad(${idx}, ${(item.cantidad||1)+1})">+</button>
+                        </td>
+                        <td>$${subtotalItem.toFixed(2)}</td>
+                        <td><button class="btn-cantidad" onclick="eliminarItem(${idx})">🗑️</button></td>
+                    </tr>
+                `;
+            });
+            
+            const envio = subtotal > 500 ? 0 : 50;
+            const total = subtotal + envio;
+            
+            document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('envio').innerText = `$${envio.toFixed(2)}`;
+            document.getElementById('total').innerText = `$${total.toFixed(2)}`;
+        }
+        
+        function cambiarCantidad(idx, nueva) {
+            if(nueva <= 0) return eliminarItem(idx);
+            let carrito = obtenerCarrito();
+            carrito[idx].cantidad = nueva;
+            guardarCarrito(carrito);
+            mostrarCarrito();
+            actualizarContadorCarrito();
+        }
+        
+        function eliminarItem(idx) {
+            let carrito = obtenerCarrito();
+            carrito.splice(idx, 1);
+            guardarCarrito(carrito);
+            mostrarCarrito();
+            actualizarContadorCarrito();
+        }
+        
+        function escapeHtml(t) {
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+        
+        document.getElementById('enviar-whatsapp').onclick = () => {
+            const nombre = document.getElementById('nombre').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const metodo = document.getElementById('metodo-pago').value;
+            const metodoTexto = metodo === 'efectivo' ? 'Efectivo (contra entrega)' : 'Transferencia / Transfermóvil';
+            
+            if(!nombre || !telefono) {
+                alert('Completa nombre y teléfono');
+                return;
+            }
+            
+            const carrito = obtenerCarrito();
+            let subtotal = 0;
+            let mensaje = `🐚 *ESQUINA VENUS - PEDIDO*\n\n`;
+            mensaje += `*Cliente:* ${nombre}\n`;
+            mensaje += `*Teléfono:* ${telefono}\n`;
+            if(direccion) mensaje += `*Dirección:* ${direccion}\n`;
+            mensaje += `*Pago:* ${metodoTexto}\n\n`;
+            mensaje += `*PRODUCTOS:*\n`;
+            
+            carrito.forEach(item => {
+                const cant = item.cantidad || 1;
+                const sub = item.precio * cant;
+                subtotal += sub;
+                mensaje += `📦 ${item.nombre} x${cant} → $${sub.toFixed(2)}\n`;
+            });
+            
+            const envio = subtotal > 500 ? 0 : 50;
+            mensaje += `\n*Subtotal:* $${subtotal.toFixed(2)}\n`;
+            mensaje += `*Envío:* $${envio.toFixed(2)}\n`;
+            mensaje += `*TOTAL:* $${(subtotal + envio).toFixed(2)}\n\n`;
+            mensaje += `_Gracias por comprar en Esquina Venus_`;
+            
+            window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            
+            if(confirm('¿Vaciar carrito después de enviar?')) {
+                guardarCarrito([]);
+                mostrarCarrito();
+                actualizarContadorCarrito();
+            }
+        };
+        
+        document.getElementById('vaciar-carrito').onclick = () => {
+            if(confirm('¿Vaciar todo el carrito?')) {
+                guardarCarrito([]);
+                mostrarCarrito();
+                actualizarContadorCarrito();
+            }
+        };
+        
+        mostrarCarrito();
+        actualizarContadorCarrito();
+    </script>
+</body>
+</html>
