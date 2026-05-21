@@ -1,1 +1,56 @@
-
+{
+  "version": "1",
+  "ultima_actualizacion": "2025-01-15",
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Los 7 hábitos de la gente altamente efectiva",
+      "categoria": "libro_fisico",
+      "descripcion": "Libro usado de Stephen Covey. Desarrollo personal. Buen estado.",
+      "precio": 250,
+      "tipo": "fisico",
+      "estado": "bueno",
+      "imagen": "",
+      "destacado": true,
+      "disponible": true,
+      "fecha_agregado": "2025-01-10"
+    },
+    {
+      "id": 2,
+      "nombre": "El monje que vendió su Ferrari",
+      "categoria": "libro_fisico",
+      "descripcion": "Robin Sharma. Clásico del desarrollo personal. Como nuevo.",
+      "precio": 200,
+      "tipo": "fisico",
+      "estado": "como_nuevo",
+      "imagen": "",
+      "destacado": true,
+      "disponible": true,
+      "fecha_agregado": "2025-01-10"
+    },
+    {
+      "id": 3,
+      "nombre": "Audiorresumen: Padre Rico, Padre Pobre",
+      "categoria": "audio_resumen",
+      "descripcion": "Resumen en audio de 25 minutos del clásico de Robert Kiyosaki. Formato MP3.",
+      "precio": 50,
+      "tipo": "digital",
+      "link_descarga": "https://tu-cloud.com/audios/padre-rico.mp3",
+      "destacado": false,
+      "disponible": true,
+      "fecha_agregado": "2025-01-10"
+    },
+    {
+      "id": 4,
+      "nombre": "Plantilla PWA: CRM para emprendedores",
+      "categoria": "herramienta_pwa",
+      "descripcion": "Aplicación web progresiva que funciona offline. Ideal para gestionar clientes y ventas.",
+      "precio": 300,
+      "tipo": "digital",
+      "link_descarga": "",
+      "destacado": false,
+      "disponible": true,
+      "fecha_agregado": "2025-01-10"
+    }
+  ]
+}
